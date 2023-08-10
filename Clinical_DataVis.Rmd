@@ -1,0 +1,107 @@
+---
+title: "SexDifferencesNSCLC"
+author: "Rowan Barker-Clarke"
+date: "8/10/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(gridExtra)
+```
+
+## Introduction to non-small cell lung cancer
+
+The 5-year relative survival rate for NSCLC in women in the United States is 33%. The 5-year relative survival rate for men is 23%. For people with localized NSCLC, which means the cancer has not spread outside the lung, the overall 5-year relative survival rate is 65%.
+
+The data we will look at is from the Lung1 cohort from the cancer genome atlas. https://wiki.cancerimagingarchive.net/display/Public/NSCLC-Radiomics
+
+```{r read_data}
+df_nsclc<-read.csv(file = "Clinical_Lung1.csv")
+```
+
+## View data
+
+```{r view_table}
+head(df_nsclc)
+```
+
+## Scatter Plot: Age at Diagnosis, Survival Time, Gender
+```{r scatter, echo=FALSE}
+plot_1 <- ggplot2::ggplot(aes(x=age, y=Survival.time/365, fill=gender, color=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) + 
+  geom_point() +
+  geom_smooth(method = "lm") +
+  ylab("Survival (years)") +
+  xlab("Age at diagnosis")
+
+plot_1
+```
+
+## Boxplots: Age, Histology, Gender
+
+```{r plot_data, echo=FALSE}
+
+ggplot2::ggplot(aes(x=Overall.Stage, y=age, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage)))+ geom_boxplot() +geom_point(position = position_jitterdodge(jitter.width = 0.1))
+```
+
+```{r}
+plot_2 <- ggplot2::ggplot(aes(y=Survival.time/365, x=Overall.Stage, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + 
+  geom_boxplot(notch=TRUE) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1)) + 
+  ylab("Survival (years)") +
+  theme(legend.position="none")
+plot_2
+
+```
+
+
+```{r}
+plot_3 <- ggplot2::ggplot(aes(y=Survival.trunc/365, x=Overall.Stage, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + 
+  geom_boxplot(notch=TRUE) +
+  geom_point(position = position_jitterdodge(jitter.width = 0.1)) + 
+  ylab("Cancer specific survival (years)") + 
+  theme(legend.position="none")
+plot_3 
+
+```
+
+## Composite plot
+
+```{r}
+grid.arrange(plot_1, NULL, plot_2,plot_3, nrow=2, ncol=2)
+```
+
+
+
+## Extra plots
+
+
+
+```{r}
+ggplot2::ggplot(aes(y=Survival.time, x=as.factor(Clinical.N.Stage), fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + geom_boxplot(notch=TRUE) +geom_point(position = position_jitterdodge(jitter.width = 0.1)) + ylab("Survival Time (days)")
+```
+
+
+```{r modify}
+# truncated (cancer-specific) survival only
+df_nsclc$Survival.trunc <- ifelse(df_nsclc$Survival.time>1800, NA, df_nsclc$Survival.time)
+
+ggplot2::ggplot(aes(y=Survival.trunc/365, x=Overall.Stage, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + geom_boxplot(notch=TRUE) +geom_point(position = position_jitterdodge(jitter.width = 0.1)) + ylab("Survival Time (years)")
+
+```
+
+
+```{r}
+# Age at death
+df_nsclc$age.at.death <- (df_nsclc$age)*365+df_nsclc$Survival.time
+
+ggplot2::ggplot(aes(x=as.factor(clinical.T.Stage), y=age.at.death/365, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(clinical.T.Stage)))+ geom_boxplot() +geom_point(position = position_jitterdodge(jitter.width = 0.1))
+
+
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
