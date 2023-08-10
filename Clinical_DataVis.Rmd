@@ -56,7 +56,13 @@ plot_2 <- ggplot2::ggplot(aes(y=Survival.time/365, x=Overall.Stage, fill=gender,
 plot_2
 
 ```
+```{r cancer-specific}
+# truncated (cancer-specific) survival only
+df_nsclc$Survival.trunc <- ifelse(df_nsclc$Survival.time>1800, NA, df_nsclc$Survival.time)
 
+ggplot2::ggplot(aes(y=Survival.trunc/365, x=Overall.Stage, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + geom_boxplot(notch=TRUE) +geom_point(position = position_jitterdodge(jitter.width = 0.1)) + ylab("Survival Time (years)")
+
+```
 
 ```{r}
 plot_3 <- ggplot2::ggplot(aes(y=Survival.trunc/365, x=Overall.Stage, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + 
@@ -84,14 +90,6 @@ grid.arrange(plot_1, NULL, plot_2,plot_3, nrow=2, ncol=2)
 ggplot2::ggplot(aes(y=Survival.time, x=as.factor(Clinical.N.Stage), fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + geom_boxplot(notch=TRUE) +geom_point(position = position_jitterdodge(jitter.width = 0.1)) + ylab("Survival Time (days)")
 ```
 
-
-```{r modify}
-# truncated (cancer-specific) survival only
-df_nsclc$Survival.trunc <- ifelse(df_nsclc$Survival.time>1800, NA, df_nsclc$Survival.time)
-
-ggplot2::ggplot(aes(y=Survival.trunc/365, x=Overall.Stage, fill=gender, c=gender), data =df_nsclc %>% dplyr::filter(!is.na(Overall.Stage))) %>% + geom_boxplot(notch=TRUE) +geom_point(position = position_jitterdodge(jitter.width = 0.1)) + ylab("Survival Time (years)")
-
-```
 
 
 ```{r}
